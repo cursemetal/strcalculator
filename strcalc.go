@@ -9,72 +9,66 @@ import (
 )
 
 func main() {
-	rdr := bufio.NewReader(os.Stdin) // ридер для строки
-	fmt.Print("Введите выражение: ")
-	rust, _ := rdr.ReadString('\n') //считываем ввод от пользователя до новой строки
-	rust = strings.TrimSpace(rust)  //
+	rdr := bufio.NewReader(os.Stdin)
+	fmt.Println("Введите выражение: ")
+	rust, _ := rdr.ReadString('\n')
+	rust = strings.TrimSpace(rust)
 
-	x := strings.Split(rust, " ") // разжделение строки пробелами
+	x := strings.Split(rust, " ")
+	if len(x) < 3 {
+		fmt.Println("Некорректный ввод.") //Проверка ввода что бы было 3 части
+		return
+	}
 
-	
-	var strng string
-	if len(x[0]) >= 2 && x[0][0] == '"' && x[0][len(x[0])-1] == '"' {
-		// Если есть кавычки, удаляем их
-		strng = x[0][1 : len(x[0])-1]
+	var frop, num, sdop string
+	if len(x) > 3 {
+		frop = strings.Trim(x[0], "\"") + " " + strings.Trim(x[1], "\"")
+		num = x[2]
+		sdop = strings.Trim(x[3], "\"")
 	} else {
-		// Если нет кавычек, просто используем первый элемент
-		strng = x[0]
+		frop = strings.Trim(x[0], "\"")
+		num = x[1]
+		sdop = strings.Trim(x[2], "\"")
 	}
 
-	if len(strng) > 10 {
-		panic("Строка не должна быть длиннее 10 символов") 
-	}
+	var surgery string // операторы
+	var n int
+	var err error
 
-	var operateons string
-	var num int
-	switch len(x) { // Проверка на верноесть ввода что 1 это 1
-	case 3:
-		operateons = x[1]
-		num, _ = strconv.Atoi(x[2]) // конверт
-	case 4:
-		operateons = x[2]
-		num, _ = strconv.Atoi(x[3]) // конверт
-	default:
-		panic("Некорректный формат выражения")
-	}
-
-	if operateons == "*" || operateons == "/" { // (работает для *, /)
-		if num < 1 || num > 10 {
-			panic("Число должно быть от 1 до 10")
-		}
-	}
-
-	var surgery string
-	switch operateons {
+	switch num {
 	case "+":
-		
-		surgery = strng + x[len(x)-1][1:len(x[len(x)-1])-1]
+		surgery = frop + sdop
 	case "-":
-		
-		surgery = strings.ReplaceAll(strng, x[len(x)-1][1:len(x[len(x)-1])-1], "") // Действия
+		surgery = strings.Replace(frop, sdop, "", 1)
 	case "*":
-		surgery = strings.Repeat(strng, num)
-	case "/":
-		if len(strng)%num != 0 {
-			panic("Невозможно разделить строку на равные части")
-		}
-		lgLength := len(strng) / num
-		surgery = strng[0:lgLength] // только часть строки кратную числу
-	default:
-		panic("Неподдерживаемая операция")
-	}
 
-	
-	surgery = strings.Trim(surgery, "\"")
+		n, err = strconv.Atoi(sdop)
+		if err != nil {
+			fmt.Println("Некорректый ввод.") // конверт 2 число
+			return
+		}
+		surgery = strings.Repeat(frop, n)
+	case "/":
+
+		n, err = strconv.Atoi(sdop)
+		if err != nil {
+			fmt.Println("Некорректный ввод .") // конверт 2 число
+			return
+		}
+
+		if len(frop)%n != 0 {
+			fmt.Println("Некорректный ввод.") //деление строки на число, что бы можно было поделить колво символов без остатка
+			return
+		}
+		surgery = frop[:len(frop)/n]
+	default:
+		fmt.Println("Некорректный ввод")
+		return
+	}
 
 	if len(surgery) > 40 {
-		fmt.Println(surgery[0:40] + "...") 
-	} else {
-		fmt.Println(surgery)
+		surgery = surgery[:40] + "..." // 40 + символов
 	}
+
+	fmt.Println("Результат:", surgery)
 }
